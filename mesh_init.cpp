@@ -120,7 +120,7 @@ mesh gen_mesh_ceiling(const float brick_size)
 
 	mesh.primitive_type = GL_QUADS;
 	mesh.texture_used = true;
-	mesh.tex_id = textureInit("resources/str.bmp", false, true);
+	mesh.tex_id = textureInit("resources/str.bmp", false, false);
 
 	return mesh;
 }
