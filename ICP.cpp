@@ -70,7 +70,7 @@ int brick = 1;
 int gun = 1;                          // witch gun is selected 1.. for destroy, 2.. for create
 int bullet = 5;							//bullet count 
 bool fireBullet = false;				//is fired?
-bool nightVision = true;
+bool nightVisionActive = false;
 bool bulletTime = false;
 
 GLfloat color_blue[] = { 0.0, 0.0, 1.0, 1.0 };
@@ -124,6 +124,7 @@ static void setVec3(const std::string &name, const glm::vec3 &value);
 static void use();
 static void checkCompileErrors(GLuint shader, std::string type);
 static void shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath );
+void nightVision(void);
 
 void printMap() {
 	for (int j = 0; j < mapa.rows; j++) {
@@ -400,10 +401,9 @@ void DrawAll(void)
 	frame_cnt++;
 
 	//light on/off
-	if (nightVision == true)
+	if (nightVisionActive == true)
 	{
 		glEnable(GL_LIGHT2);
-		glEnable(GL_LIGHT1);
 	}
 	else {
 		glDisable(GL_LIGHT2);
@@ -525,7 +525,7 @@ void monsterMove(void) {
 	int oldY;
 
 	while (running) {
-		std::this_thread::sleep_for(std::chrono::seconds(1));
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 
 		int playerX = abs(ceilf(player.posX / BLOCK_SIZE));
 		int playerY = abs(ceilf(player.posY / BLOCK_SIZE));
@@ -567,6 +567,22 @@ void monsterMove(void) {
 		}
 	}
 
+}
+
+void nightVision(void) {
+	int timeNight = 5;
+	while (running) {
+		if (nightVisionActive) {
+			if (timeNight <= 0) {
+				nightVisionActive = false;
+				timeNight = 5;
+			}
+			else {
+				timeNight--;
+			}
+		}
+		std::this_thread::sleep_for(std::chrono::seconds(1));
+	}
 }
 
 //---------------------------------------------------------------------
@@ -624,6 +640,7 @@ int main(int argc, char** argv)
 
 	running = true;
 	std::thread MonsterThread(monsterMove);
+	std::thread NightThread(nightVision);
 
 	//
 	//shader("2.2.basic_lighting.vs", "2.2.basic_lighting.fs", nullptr);
@@ -730,8 +747,11 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			std::cout << "Speed: " << a.movement_speed << std::endl;
 			break;
 		case GLFW_KEY_L:
-			nightVision = !nightVision;
-			std::cout << "Light: " << nightVision << std::endl;
+			if (bullet > 0) {
+				nightVisionActive = !nightVisionActive;
+				std::cout << "Light: " << nightVision << std::endl;
+				bullet--;
+			}
 			break;
 		case GLFW_KEY_B:
 			if (fireBullet)	bulletTime = !bulletTime;
@@ -828,7 +848,7 @@ static void local_init(void)
 
 	glLightfv(GL_LIGHT2, GL_POSITION, light_position);			// light setup 
 	glLightfv(GL_LIGHT2, GL_SPOT_DIRECTION, light_direction);
-	glLightf(GL_LIGHT2, GL_SPOT_CUTOFF, 50.0);
+	glLightf(GL_LIGHT2, GL_SPOT_CUTOFF, 20.0);
 	glLightf(GL_LIGHT2, GL_SPOT_EXPONENT, 1.5f);
 	glLightfv(GL_LIGHT2, GL_DIFFUSE, light_color);
 	glLightfv(GL_LIGHT2, GL_AMBIENT, light_color);
@@ -854,6 +874,7 @@ static void local_init(void)
 	glEnable(GL_LIGHTING);
 
 	glEnable(GL_TEXTURE_2D);
+	glEnable(GL_LIGHT1);
 }
 
 void error_callback(int error, const char* description)
