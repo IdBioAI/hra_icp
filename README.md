@@ -16,7 +16,7 @@ Na začátku hry má hráč 5 kostek (víc jich neunese).  Pokud hráč už nem�
 #### Scéna 
 - 3D scéna 
 - načtení 3D objektu jako strop (.obj)
-- klávesnice (pohyb, změna zbraně, změna kostky, beterka...)
+- klávesnice (pohyb, změna zbraně, změna kostky, noční vidění...)
 - myš (pohyb, zničení/vytvoření kostky)
 - vlákno na pohyb příšery (kostka s texturou pronásledující hráče)
 - dvě světla - noční vidění a menší osvětlení mapy (když není noční vidění k dispozici)
