@@ -4,6 +4,9 @@
 #include <chrono>
 #include <stack>
 #include <random>
+#include <fstream>
+#include <sstream>
+#include <string>
 
 // OpenCV 
 //#include <opencv2\opencv.hpp>
@@ -19,6 +22,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+//#include <glm/glad.h>
 // OpenGL textures
 #include <gli/gli.hpp>
 
@@ -55,6 +59,8 @@ monsterStr monster;
 bool running = false;
 
 std::stack<glm::mat4> stack_modelview;
+glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+
 
 Avatar  player = { 10.0f, 0.0f, 0.0f, 0.0f };
 Avatar  shot = { 0.0, 0.0, 0.0 };
@@ -64,7 +70,7 @@ int brick = 1;
 int gun = 1;                          // witch gun is selected 1.. for destroy, 2.. for create
 int bullet = 5;							//bullet count 
 bool fireBullet = false;				//is fired?
-bool enableLight = true;
+bool nightVision = true;
 bool bulletTime = false;
 
 GLfloat color_blue[] = { 0.0, 0.0, 1.0, 1.0 };
@@ -113,6 +119,11 @@ uchar getmap(cv::Mat& map, int x, int y)
 static void local_init(void);
 static void local_init_mesh(void);
 static unsigned char collision(Avatar* avatar);
+static void setVec3(const std::string &name, float x, float y, float z);
+static void setVec3(const std::string &name, const glm::vec3 &value);
+static void use();
+static void checkCompileErrors(GLuint shader, std::string type);
+static void shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath );
 
 void printMap() {
 	for (int j = 0; j < mapa.rows; j++) {
@@ -389,9 +400,10 @@ void DrawAll(void)
 	frame_cnt++;
 
 	//light on/off
-	if (enableLight == true)
+	if (nightVision == true)
 	{
 		glEnable(GL_LIGHT2);
+		glEnable(GL_LIGHT1);
 	}
 	else {
 		glDisable(GL_LIGHT2);
@@ -471,14 +483,7 @@ void DrawAll(void)
 		}
 	}
 
-	//vykreslení svítích kostièek
 
-	//playerX = player.posX / BLOCK_SIZE + 1;
-	//playerY = player.posY / BLOCK_SIZE + 1;
-	//glm::mat4 model = glm::mat4(1.0f);
-	//setMat4("model", model);
-
-	// vykreslení prùhledných kostièek
 	for (j = 0; j < mapa.rows; j++)
 	{
 		for (i = 0; i < mapa.cols; i++)
@@ -491,7 +496,7 @@ void DrawAll(void)
 			//glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, color_white);
 		}
 	}
-
+	
 	// vykreslení prùhledných kostièek
 	for (j = 0; j < mapa.rows; j++)
 	{
@@ -620,7 +625,8 @@ int main(int argc, char** argv)
 	running = true;
 	std::thread MonsterThread(monsterMove);
 
-	ID = glCreateProgram();
+	//
+	//shader("2.2.basic_lighting.vs", "2.2.basic_lighting.fs", nullptr);
 
 	// Run until exit is requested.
 	while (!glfwWindowShouldClose(globals.window))
@@ -633,6 +639,14 @@ int main(int argc, char** argv)
 		glLoadIdentity();
 
 		DrawAll();
+
+		/*glm::mat4 model = glm::mat4(1.0f);
+		glm::mat4 projection = glm::perspective(45.0f, (float)800 / (float)600, 0.1f, 100.0f);
+		setMat4("model", projection);
+		use();
+		setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+		setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+		setVec3("lightPos", lightPos);*/
 
 		// Swap front and back buffers 
 		// Calls glFlush() inside
@@ -716,8 +730,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 			std::cout << "Speed: " << a.movement_speed << std::endl;
 			break;
 		case GLFW_KEY_L:
-			enableLight = !enableLight;
-			std::cout << "Light: " << enableLight << std::endl;
+			nightVision = !nightVision;
+			std::cout << "Light: " << nightVision << std::endl;
 			break;
 		case GLFW_KEY_B:
 			if (fireBullet)	bulletTime = !bulletTime;
@@ -771,8 +785,6 @@ static void local_init_mesh(void)
 		std::cerr << "loadOBJ failed" << std::endl;
 		exit(EXIT_FAILURE);
 	}
-	std::cout << "Mesh: CUBE initialized, vertices: " << mesh_cube.vertices.size() << ", indices: " << mesh_cube.indices.size() << std::endl;
-
 
 	gen_mesh_magazines(meshes_magazine);
 	{
@@ -816,10 +828,28 @@ static void local_init(void)
 
 	glLightfv(GL_LIGHT2, GL_POSITION, light_position);			// light setup 
 	glLightfv(GL_LIGHT2, GL_SPOT_DIRECTION, light_direction);
-	glLightf(GL_LIGHT2, GL_SPOT_CUTOFF, 8.0);
+	glLightf(GL_LIGHT2, GL_SPOT_CUTOFF, 50.0);
 	glLightf(GL_LIGHT2, GL_SPOT_EXPONENT, 1.5f);
 	glLightfv(GL_LIGHT2, GL_DIFFUSE, light_color);
 	glLightfv(GL_LIGHT2, GL_AMBIENT, light_color);
+
+	GLfloat light1_ambient[] = { 1.2, 0.2, 1.2, 1.0 };
+	GLfloat light1_diffuse[] = { 1.0, 1.0, 1.0, 1.0 };
+	GLfloat light1_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+	GLfloat light1_position[] = { 0.0, 0.0, 45.0, 1.0 };
+	GLfloat spot_direction[] = { 0.0, 0.0, -1.0 };
+
+	glLightfv(GL_LIGHT1, GL_AMBIENT, light1_ambient);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, light1_diffuse);
+	glLightfv(GL_LIGHT1, GL_SPECULAR, light1_specular);
+	glLightfv(GL_LIGHT1, GL_POSITION, light1_position);
+	glLightf(GL_LIGHT1, GL_CONSTANT_ATTENUATION, 1.5);
+	//glLightf(GL_LIGHT1, GL_LINEAR_ATTENUATION, 0.5);
+	//glLightf(GL_LIGHT1, GL_QUADRATIC_ATTENUATION, 0.2);
+
+	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 50.0);
+	glLightfv(GL_LIGHT1, GL_SPOT_DIRECTION, spot_direction);
+	glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 1.5);
 
 	glEnable(GL_LIGHTING);
 
@@ -857,7 +887,127 @@ void fbsize_callback(GLFWwindow* window, int width, int height)
 	std::cout << "WxH: " << width << " " << height << std::endl;
 }
 
+void use()
+{
+	glUseProgram(ID);
+}
+
 void setMat4(const std::string& name, glm::mat4 value)
 {
 	glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
+}
+void setVec3(const std::string &name, const glm::vec3 &value)
+{
+	glUniform3fv(glGetUniformLocation(ID, name.c_str()), 1, &value[0]);
+}
+void setVec3(const std::string &name, float x, float y, float z)
+{
+	glUniform3f(glGetUniformLocation(ID, name.c_str()), x, y, z);
+}
+
+void shader(const char* vertexPath, const char* fragmentPath, const char* geometryPath = nullptr)
+{
+	// 1. retrieve the vertex/fragment source code from filePath
+	std::string vertexCode;
+	std::string fragmentCode;
+	std::string geometryCode;
+	std::ifstream vShaderFile;
+	std::ifstream fShaderFile;
+	std::ifstream gShaderFile;
+	// ensure ifstream objects can throw exceptions:
+	vShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+	fShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+	gShaderFile.exceptions(std::ifstream::failbit | std::ifstream::badbit);
+	try
+	{
+		// open files
+		vShaderFile.open(vertexPath);
+		fShaderFile.open(fragmentPath);
+		std::stringstream vShaderStream, fShaderStream;
+		// read file's buffer contents into streams
+		vShaderStream << vShaderFile.rdbuf();
+		fShaderStream << fShaderFile.rdbuf();
+		// close file handlers
+		vShaderFile.close();
+		fShaderFile.close();
+		// convert stream into string
+		vertexCode = vShaderStream.str();
+		fragmentCode = fShaderStream.str();
+		// if geometry shader path is present, also load a geometry shader
+		if (geometryPath != nullptr)
+		{
+			gShaderFile.open(geometryPath);
+			std::stringstream gShaderStream;
+			gShaderStream << gShaderFile.rdbuf();
+			gShaderFile.close();
+			geometryCode = gShaderStream.str();
+		}
+	}
+	catch (std::ifstream::failure& e)
+	{
+		std::cout << "ERROR::SHADER::FILE_NOT_SUCCESFULLY_READ" << std::endl;
+	}
+	const char* vShaderCode = vertexCode.c_str();
+	const char * fShaderCode = fragmentCode.c_str();
+	// 2. compile shaders
+	unsigned int vertex, fragment;
+	// vertex shader
+	vertex = glCreateShader(GL_VERTEX_SHADER);
+	glShaderSource(vertex, 1, &vShaderCode, NULL);
+	glCompileShader(vertex);
+	checkCompileErrors(vertex, "VERTEX");
+	// fragment Shader
+	fragment = glCreateShader(GL_FRAGMENT_SHADER);
+	glShaderSource(fragment, 1, &fShaderCode, NULL);
+	glCompileShader(fragment);
+	checkCompileErrors(fragment, "FRAGMENT");
+	// if geometry shader is given, compile geometry shader
+	unsigned int geometry;
+	if (geometryPath != nullptr)
+	{
+		const char * gShaderCode = geometryCode.c_str();
+		geometry = glCreateShader(GL_GEOMETRY_SHADER);
+		glShaderSource(geometry, 1, &gShaderCode, NULL);
+		glCompileShader(geometry);
+		checkCompileErrors(geometry, "GEOMETRY");
+	}
+	// shader Program
+	ID = glCreateProgram();
+	glAttachShader(ID, vertex);
+	glAttachShader(ID, fragment);
+	if (geometryPath != nullptr)
+		glAttachShader(ID, geometry);
+	glLinkProgram(ID);
+	checkCompileErrors(ID, "PROGRAM");
+	// delete the shaders as they're linked into our program now and no longer necessery
+	glDeleteShader(vertex);
+	glDeleteShader(fragment);
+	if (geometryPath != nullptr)
+		glDeleteShader(geometry);
+
+}
+// utility function for checking shader compilation/linking errors.
+// ------------------------------------------------------------------------
+void checkCompileErrors(GLuint shader, std::string type)
+{
+	GLint success;
+	GLchar infoLog[1024];
+	if (type != "PROGRAM")
+	{
+		glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
+		if (!success)
+		{
+			glGetShaderInfoLog(shader, 1024, NULL, infoLog);
+			std::cout << "ERROR::SHADER_COMPILATION_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+		}
+	}
+	else
+	{
+		glGetProgramiv(shader, GL_LINK_STATUS, &success);
+		if (!success)
+		{
+			glGetProgramInfoLog(shader, 1024, NULL, infoLog);
+			std::cout << "ERROR::PROGRAM_LINKING_ERROR of type: " << type << "\n" << infoLog << "\n -- --------------------------------------------------- -- " << std::endl;
+		}
+	}
 }

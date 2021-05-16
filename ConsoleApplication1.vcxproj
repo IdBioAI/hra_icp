@@ -178,6 +178,10 @@
     <ClCompile Include="OBJloader.cpp" />
     <ClCompile Include="texture.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="2.2.light_cube.fs" />
+    <None Include="2.2.light_cube.vs" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

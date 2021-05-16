@@ -69,4 +69,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="2.2.light_cube.vs">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="2.2.light_cube.fs">
+      <Filter>Source Files</Filter>
+    </None>
+  </ItemGroup>
 </Project>
