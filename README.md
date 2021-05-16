@@ -25,4 +25,4 @@ Na začátku hry má hráč 5 kostek (víc jich neunese).  Pokud hráč už nem�
 - kolize (ničení kostek, příšera sežere hráče, nelze projít kostkou, nelze zničit zdi...)
 - strop (simulace jeskyně)
 - 
-[Video]: <http://angularjs.org>
+[Video]: <https://youtu.be/nryiIMZylNY>
