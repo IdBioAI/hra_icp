@@ -19,6 +19,6 @@ Na začátku hry má hráč 5 kostek (víc jich neunese).  Pokud hráč už nem�
 - vlákno na pohyb příšery (kostka s texturou pronásledující hráče)
 - dvě světla - noční vidění a menší osvětlení mapy (když není noční vidění k dispozici)
 - Průhlednost (skleněná kostka)
-- textury (sklo, cigla, nezničitelné zdi)
+- textury (sklo, cihla, nezničitelné zdi)
 - kolize (ničení kostek, příšera sežere hráče, nelze projít kostkou, nelze zničit zdi...)
 - stop (simulace jeskyně)
