@@ -21,4 +21,4 @@ Na začátku hry má hráč 5 kostek (víc jich neunese).  Pokud hráč už nem�
 - Průhlednost (skleněná kostka)
 - textury (sklo, cihla, nezničitelné zdi)
 - kolize (ničení kostek, příšera sežere hráče, nelze projít kostkou, nelze zničit zdi...)
-- stop (simulace jeskyně)
+- strop (simulace jeskyně)
