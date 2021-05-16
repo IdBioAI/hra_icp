@@ -41,6 +41,8 @@ mesh mesh_undestroyableBrick;
 mesh mesh_treasure;
 mesh mesh_gun;
 std::vector<mesh> meshes_magazine;
+int circle_segments = 1'000'000;
+mesh mesh_cube;
 
 struct monsterStr{
 	mesh monsterMesh;
@@ -64,6 +66,11 @@ int bullet = 5;							//bullet count
 bool fireBullet = false;				//is fired?
 bool enableLight = true;
 bool bulletTime = false;
+
+GLfloat color_blue[] = { 0.0, 0.0, 1.0, 1.0 };
+GLfloat color_white[] = { 1.0, 1.0, 1.0, 1.0 };
+
+unsigned int ID;
 
 constexpr auto BLOCK_SIZE = 10.0f;
 
@@ -412,7 +419,6 @@ void DrawAll(void)
 
 	//draw ground
 	mesh_draw(mesh_floor);
-
 	// draw inner walls and ceiling ...
 	for (j = 0; j < mapa.rows; j++)
 	{
@@ -448,20 +454,41 @@ void DrawAll(void)
 				glPopMatrix();
 				break;
 			case 'e':
-				glPushMatrix();
-				glTranslatef(i * BLOCK_SIZE, j * BLOCK_SIZE, 0.0f);
-				mesh_draw(mesh_treasure);
-				glPopMatrix();
+				/*glPushMatrix();
+				glTranslatef(i * BLOCK_SIZE, j * BLOCK_SIZE, -10.0f);
+				mesh_draw_arrays(mesh_cube);
+				glPopMatrix();*/
 				break;
 			default:
 				break;
 			}
 
 			// strop
-			glPushMatrix();
+			/*glPushMatrix();
 			glTranslatef(i * BLOCK_SIZE, j * BLOCK_SIZE, -20.0f);
 			mesh_draw(ceiling);
+			glPopMatrix();*/
+		}
+	}
+
+	//vykreslení svítích kostièek
+
+	//playerX = player.posX / BLOCK_SIZE + 1;
+	//playerY = player.posY / BLOCK_SIZE + 1;
+	//glm::mat4 model = glm::mat4(1.0f);
+	//setMat4("model", model);
+
+	// vykreslení prùhledných kostièek
+	for (j = 0; j < mapa.rows; j++)
+	{
+		for (i = 0; i < mapa.cols; i++)
+		{
+			glPushMatrix();
+			glTranslatef(i * BLOCK_SIZE, j * BLOCK_SIZE, -20.0f);
+			//glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, color_blue);
+			mesh_draw_arrays(mesh_cube);
 			glPopMatrix();
+			//glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, color_white);
 		}
 	}
 
@@ -574,7 +601,6 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 		*globals.camera = avatarRotate(*globals.camera, glm::radians(-xpos + old_x), glm::radians(0.0f), glm::radians(0.0f));
 	}
 
-	std::cout << "Davam mys pryc "  << std::endl;
 	//glfwSetCursorPos(globals.window, 0, 0);
 }
 
@@ -593,6 +619,8 @@ int main(int argc, char** argv)
 
 	running = true;
 	std::thread MonsterThread(monsterMove);
+
+	ID = glCreateProgram();
 
 	// Run until exit is requested.
 	while (!glfwWindowShouldClose(globals.window))
@@ -737,6 +765,15 @@ static void local_init_mesh(void)
 	monster.monsterMesh = mesh_brick;
 	monster.monsterMesh.tex_id = textureInit("resources/monster.png", false, false);
 
+	mesh_cube = gen_mesh_ceiling(BLOCK_SIZE);
+	if (!loadOBJ(mesh_cube, "resources/model.obj"))
+	{
+		std::cerr << "loadOBJ failed" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+	std::cout << "Mesh: CUBE initialized, vertices: " << mesh_cube.vertices.size() << ", indices: " << mesh_cube.indices.size() << std::endl;
+
+
 	gen_mesh_magazines(meshes_magazine);
 	{
 		GLuint t = textureInit("resources/bullet.bmp", false, false);
@@ -818,4 +855,9 @@ void fbsize_callback(GLFWwindow* window, int width, int height)
 	glViewport(0, 0, width, height);			// set visible area
 
 	std::cout << "WxH: " << width << " " << height << std::endl;
+}
+
+void setMat4(const std::string& name, glm::mat4 value)
+{
+	glUniformMatrix4fv(glGetUniformLocation(ID, name.c_str()), 1, GL_FALSE, glm::value_ptr(value));
 }
