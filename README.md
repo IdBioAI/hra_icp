@@ -1,6 +1,6 @@
 # Hra
 
-Cíl hry: přežít!! V hře se pohybuje příšera, která když vystopuje hráče, tak ho sežere (hra se restartuje a vygeneruje se nová mapa). Hráč má možnost postavit dva druhy kostek.  Jednu cihlovou a druhou ze skla. Cihlovou kostku příšera může přesunout a pokračovat v cestě. Hráč může ale do cesty příšeře postavit kostku ze skla. Jelikož se příšera bojí pořezání o sklo, tak se kostky nedotkne a nemůže jí přesunout. Hráče taková kostka stojí dvě cihlové kostky.
+Cíl hry: Přežít!! Ve hře se pohybuje příšera, která když vystopuje hráče, tak ho sežere (hra se restartuje a vygeneruje se nová mapa). Hráč má možnost postavit dva druhy kostek.  Jednu cihlovou a druhou ze skla. Cihlovou kostku příšera může přesunout a pokračovat v cestě. Hráč může ale do cesty příšeře postavit kostku ze skla. Jelikož se příšera bojí pořezání o sklo, tak se kostky nedotkne a nemůže jí přesunout. Hráče taková kostka stojí dvě cihlové kostky.
 Na začátku hry má hráč 5 kostek (víc jich neunese).  Pokud hráč už nemá další kostky, může nějaké zníčit a postavit je jinam. 
 
 #### Ovládání
