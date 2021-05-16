@@ -15,7 +15,7 @@ Na začátku hry má hráč 5 kostek (víc jich neunese).  Pokud hráč už nem�
 - načtení 3D objektu jako strop
 - klávesnice (pohyb, změna zbraně, změna kostky, beterka...)
 - myš (pohyb, zničení/vytvoření kostky)
-- vlákno na pohyb příšery
+- vlákno na pohyb příšery (kostka s texturou pronásledující hráče)
 - Průhlednost (skleněná kostka)
 - textury (sklo, cigla, nezničitelné zdi)
 - kolize (ničení kostek, příšera sežere hráče, nelze projít kostkou, nelze zničit zdi...)
